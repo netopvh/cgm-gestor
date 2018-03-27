@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Database\Seeder;
+use App\Domains\Access\Models\User;
+
+class UsersTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        User::create([
+            'username' => '1111',
+            'name' => 'Angelo Neto',
+            'email' => 'angelo.neto@portovelho.ro.gov.br',
+            'password' => bcrypt('123456')
+        ]);
+    }
+}
