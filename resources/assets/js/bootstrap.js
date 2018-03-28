@@ -54,8 +54,8 @@ if (token) {
  * Required datatables library
  *
  */
-require('datatables.net');
-require('select2');
+//require('datatables.net');
+//require('select2');
 //require('datatables.net-bs');
 
 /**

@@ -9,8 +9,11 @@ require('./bootstrap');
 
 
 window.Vue = require('vue');
-import Vue from 'vue'
-import store from './vuex/store'
+import Vue from 'vue';
+import store from './vuex/store';
+import DatatableFactory from 'vuejs-datatable';
+
+Vue.use(DatatableFactory);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -26,7 +29,7 @@ Vue.component('app-modal-link', require('./components/modal/ModalLink.vue'));
 Vue.component('app-form', require('./components/Form.vue'));
 
 //Page Components
-//Vue.component('user-table', require('./components/views/User/Index.vue'));
+Vue.component('user-table', require('./components/views/User/Index.vue'));
 
 
 /**
@@ -35,7 +38,7 @@ Vue.component('app-form', require('./components/Form.vue'));
  */
 
 //Ações do Usuário
-require('./actions/users');
+//require('./actions/users');
 
 
 
