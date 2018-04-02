@@ -18,5 +18,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'angelo.neto@portovelho.ro.gov.br',
             'password' => bcrypt('123456')
         ]);
+
+        factory(App\Domains\Access\Models\User::class, 50)->create();
     }
 }

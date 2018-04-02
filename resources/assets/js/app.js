@@ -11,9 +11,7 @@ require('./bootstrap');
 window.Vue = require('vue');
 import Vue from 'vue';
 import store from './vuex/store';
-import DatatableFactory from 'vuejs-datatable';
 
-Vue.use(DatatableFactory);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

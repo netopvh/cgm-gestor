@@ -1,66 +1,124 @@
 <template>
-<app-panel>
-    <div class="row">
-        <div class="col-xs-12 form-inline">
-            <div class="form-group">
-                <label for="filter" class="sr-only">Filter</label>
-                <input type="text" class="form-control" v-model="filter" placeholder="Filter">
+    <app-panel>
+        <div class="row">
+            <div class="col-xs-12 form-inline">
+                {{ query }}
             </div>
         </div>
-    </div>
-
-    <div class="row">
-        <div id="table" class="col-xs-12 table-responsive">
-            <datatable :columns="columns" :data="rows" :filter-by="filter"></datatable>
+        <div class="row">
+            <div id="table" class="col-xs-12 table-responsive">
+                <datatable v-bind="$data">
+                    <button class="btn btn-default" @click="alertSelectedUids" :disabled="!selection.length">
+                        <i class="fa fa-commenting-o"></i>
+                        Alert selected uid(s)
+                    </button>
+                </datatable>
+            </div>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-xs-12 form-inline">
-            <datatable-pager v-model="page" type="abbreviated" :per-page="per_page"></datatable-pager>
-        </div>
-    </div>
-</app-panel>
+    </app-panel>
 </template>
 
 <script>
-
+    import vue from 'vue';
     import axios from 'axios';
+    import Datatable from 'vue2-datatable-component';
+    import lodash from 'lodash';
+    import CustomActions from './CustomActions.vue'
+
+    Vue.use(Datatable);
 
     export default {
+        components:{
+            CustomActions
+        },
+        props: ['row'],
         data: function () {
-            return {
-                filter: '',
-                columns: [
-                    {label: 'ID', field: 'id', align: 'center', filterable: false, sortable: false},
-                    {label: 'Nome', field: 'name'},
-                    {label: 'Email', field: 'email'},
-                    {label: 'Status', field: 'active'},
-                ],
-                rows: [],
-                page: 1,
-                per_page: 10
-            }
-        },
-        methods:{
-            getData: function(params, setRowData){
-                axios.get('/api/users').then(function(response){
-                    let start_index = (params.page_number - 1) * params.page_length;
-                    let end_index = start_index + params.page_length;
+            const amINestedComp = !!this.row;
 
-                    setRowData(
-                        response.data.slice(start_index, end_index),
-                        response.data.length
-                    );
-                }.bind(this));
+            return {
+                supportBackup: true,
+                supportNested: true,
+                tblClass: 'table-bordered table-condensed',
+                tblStyle: 'color: #666',
+                pageSizeOptions: [5, 10, 15, 20],
+                columns: (() => {
+                    const cols = [
+                        {title: 'ID', field: 'id', label: 'ID', sortable: true, visible: true},
+                        {title: 'Nome', field: 'name', sortable: true},
+                        {title: 'Email', field: 'email'},
+                        {title: 'Status', field: 'active'},
+                        {title: 'Ações', label:'Ações', tdComp: 'CustomActions', visible: true}
+                    ];
+                    const groupsDef = {
+                        Normal: ['Email'],
+                        Sortable: ['ID', 'Nome'],
+                        Extra: ['Ações']
+                    };
+                    return cols.map(col => {
+                        Object.keys(groupsDef).forEach(groupName => {
+                            if (groupsDef[groupName].includes(col.title)) {
+                                col.group = groupName
+                            }
+                        });
+                        return col
+                    })
+                })(),
+                data: [],
+                total: 0,
+                selection: [],
+                summary: {},
+                allRows: [],
+
+                query: {},
+                // any other staff that you want to pass to dynamic components (thComp / tdComp / nested components)
+                xprops: {
+                    eventbus: new Vue() // only for the current Datatable instance
+                }
             }
         },
-        mounted: function(){
-            this.getData()
+        watch: {
+            query: {
+                handler (query) {
+                    this.handleQueryChange(query)
+                },
+                deep: true
+            }
+        },
+        methods: {
+            handleQueryChange (query) {
+                if (this.allRows.length === 0) {
+                    axios.get('/api/users')
+                        .then((res) => {
+                            this.allRows = res.data.data;
+                            this.data = this.allRows.slice(query.offset, query.limit);
+                            this.total = this.allRows.length;
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                } else {
+                    this.data = this.allRows.slice(query.offset, query.offset + query.limit);
+                    if (query.sort) {
+                        this.data = lodash.orderBy(this.data, query.sort, query.order)
+                    }
+                }
+            },
+            alertSelectedUids () {
+                alert(this.selection.map(({id}) => id))
+            }
+        },
+        created () {
+            // init query (make all the properties observable by using `$set`)
+            let vm = this;
+            const q = {limit: 10, offset: 0, sort: '', order: '', ...this.query};
+            Object.keys(q).forEach(key => {
+                this.$set(vm.query, key, q[key])
+            })
         }
     }
 </script>
-
-<style scoped>
-
+<style>
+    .w-240 {
+        width: 240px;
+    }
 </style>
