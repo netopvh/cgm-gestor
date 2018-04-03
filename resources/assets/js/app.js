@@ -11,7 +11,10 @@ require('./bootstrap');
 window.Vue = require('vue');
 import Vue from 'vue';
 import store from './vuex/store';
+import Datatable from 'vue2-datatable-component'
+import locale from './locale/pt'
 
+Vue.use(Datatable, { locale });
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

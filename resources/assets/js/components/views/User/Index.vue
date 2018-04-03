@@ -21,37 +21,37 @@
 <script>
     import vue from 'vue';
     import axios from 'axios';
-    import Datatable from 'vue2-datatable-component';
-    import lodash from 'lodash';
-    import CustomActions from './CustomActions.vue'
-
-    Vue.use(Datatable);
+    import _ from 'lodash';
+    import CustomActions from './CustomActions.vue';
+    import FilterBar from './FilterBar.vue';
+    import mockData from './mockData';
 
     export default {
-        components:{
-            CustomActions
+        components: {
+            CustomActions,
+            FilterBar
         },
         props: ['row'],
         data: function () {
             const amINestedComp = !!this.row;
 
             return {
-                supportBackup: true,
-                supportNested: true,
+                //supportBackup: true,
+                //supportNested: true,
                 tblClass: 'table-bordered table-condensed',
                 tblStyle: 'color: #666',
                 pageSizeOptions: [5, 10, 15, 20],
                 columns: (() => {
                     const cols = [
                         {title: 'ID', field: 'id', label: 'ID', sortable: true, visible: true},
-                        {title: 'Nome', field: 'name', sortable: true},
+                        {title: 'Nome', field: 'name', label: 'Nome', thComp: FilterBar},
                         {title: 'Email', field: 'email'},
-                        {title: 'Status', field: 'active'},
-                        {title: 'Ações', label:'Ações', tdComp: 'CustomActions', visible: true}
+                        {title: 'Status', field: 'active', sortable: true},
+                        {title: 'Ações', label: 'Ações', tdComp: CustomActions, visible: true}
                     ];
                     const groupsDef = {
-                        Normal: ['Email'],
-                        Sortable: ['ID', 'Nome'],
+                        Ordenar: ['ID', 'Nome'],
+                        Colunas: ['ID', 'Nome', 'Email', 'Status'],
                         Extra: ['Ações']
                     };
                     return cols.map(col => {
@@ -68,6 +68,7 @@
                 selection: [],
                 summary: {},
                 allRows: [],
+                search: '',
 
                 query: {},
                 // any other staff that you want to pass to dynamic components (thComp / tdComp / nested components)
@@ -78,42 +79,23 @@
         },
         watch: {
             query: {
-                handler (query) {
-                    this.handleQueryChange(query)
+                handler () {
+                    this.handleQueryChange()
                 },
                 deep: true
             }
         },
         methods: {
-            handleQueryChange (query) {
-                if (this.allRows.length === 0) {
-                    axios.get('/api/users')
-                        .then((res) => {
-                            this.allRows = res.data.data;
-                            this.data = this.allRows.slice(query.offset, query.limit);
-                            this.total = this.allRows.length;
-                        })
-                        .catch(function (error) {
-                            console.log(error);
-                        });
-                } else {
-                    this.data = this.allRows.slice(query.offset, query.offset + query.limit);
-                    if (query.sort) {
-                        this.data = lodash.orderBy(this.data, query.sort, query.order)
-                    }
-                }
+            handleQueryChange () {
+                mockData(this.query).then(({ rows, total, summary }) => {
+                    this.data = rows;
+                    this.total = total;
+                    this.summary = summary
+                })
             },
             alertSelectedUids () {
                 alert(this.selection.map(({id}) => id))
-            }
-        },
-        created () {
-            // init query (make all the properties observable by using `$set`)
-            let vm = this;
-            const q = {limit: 10, offset: 0, sort: '', order: '', ...this.query};
-            Object.keys(q).forEach(key => {
-                this.$set(vm.query, key, q[key])
-            })
+            },
         }
     }
 </script>

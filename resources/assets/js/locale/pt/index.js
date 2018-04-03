@@ -9,8 +9,8 @@ export default {
     'No Data': 'Sem Registros',
 
     /* index.vue */
-    'Total': '共',
-    ',': '项，',
+    'Total': 'Total',
+    ',': 'itens，',
 
     /* PageSizeSelect.vue */
     'items / page': 'Itens / Página'

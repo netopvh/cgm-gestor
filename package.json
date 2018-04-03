@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "jquery.nicescroll": "^3.7.6",
+        "moment": "^2.22.0",
         "ripple-js": "^1.4.4",
         "select2": "^4.0.3",
         "vue-good-table": "^1.21.0",

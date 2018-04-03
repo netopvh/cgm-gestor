@@ -20,13 +20,10 @@ class UserApiController extends Controller
         $model = User::query()->select('id','name','email','active');
 
         return $dataTables->eloquent($model)
-            ->addColumn('action', function (){
-                return view('administrativo.users.actions');
-            })
             ->editColumn('active', function($user){
                 return $user->active? 'Ativo':'Inativo';
             })
-            ->rawColumns(['active','action'])
+            ->rawColumns(['active'])
             ->toJson();
     }
 
