@@ -1,68 +1,224 @@
 <template>
-    <data-table :rows="filteredUsers"></data-table>
+
+    <div class="panel panel-default">
+        <div class="panel-header">{{ response.table }}</div>
+
+        <div class="panel-body">
+
+            <form action="#" @submit.prevent="getRecords">
+                <label for="search">Search</label>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        <select class="form-control" v-model="search.column">
+                            <option :value="column" v-for="column in response.displayable">
+                                {{ column }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <select class="form-control" v-model="search.operator">
+                            <option value="equals">equals</option>
+                            <option value="contains">contains</option>
+                            <option value="starts_with">starts with</option>
+                            <option value="ends_with">ends with</option>
+                            <option value="greater_than">greater than</option>
+                            <option value="less_than">less than</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="search" v-model="search.value">
+                            <span class="input-group-append">
+                                <button class="btn btn-default" type="submit">Search</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="row">
+                <div class="form-group col-md-9">
+                    <label for="filter">Quick search results</label>
+                    <input type="text" id="filter" class="form-control" v-model="quickSearchQuery">
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="limit">Display Records</label>
+                    <select id="limit" class="form-control" v-model="limit" @change="getRecords">
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="1000">1000</option>
+                        <option value="">All</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                    <tr>
+                        <th v-for="column in response.displayable">
+                            <span class="sortable" @click="sortBy(column)">{{ column }}</span>
+                            <div
+                                    class="arrow "
+                                    v-if="sort.key === column"
+                                    :class="{ 'arrow__asc': sort.order === 'asc',
+                                              'arrow__desc': sort.order === 'desc'
+                                              }"></div>
+                        </th>
+                        <th>&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="record in filteredRecords">
+                        <td v-for="columnValue, column in record">
+                            <template v-if="editing.id === record.id && isUpdatable(column)">
+                                <div class="form-group" :class="{ 'has-error': editing.errors[column]}">
+                                    <input
+                                            type="text"
+                                            class="form-control"
+                                            value="columnValue"
+                                            v-model="editing.form[column]">
+                                    <span class="help-block" v-if="editing.errors[column]">
+                                        <small class="text-danger">{{ editing.errors[column][0] }}</small>
+                                    </span>
+                                </div>
+                            </template>
+
+                            <template v-else>
+                                {{ columnValue }}
+                            </template>
+                        </td>
+                        <td>
+                            <a href="#" @click.prevent="edit(record)" v-if="editing.id !== record.id">edit</a>
+                            <template v-if="editing.id === record.id">
+                                <a href="#" @click.prevent="update">save</a><br>
+                                <a href="#" @click.prevent="editing.id = null">cancel</a>
+                            </template>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <script>
+    import queryString from 'query-string'
     export default {
-        name: 'data-table',
-        props: ['rows'],
-        data() {
+        props: ['endpoint'],
+        data () {
             return {
-                headers: [
-                    {title: 'ID'},
-                    {title: 'Username', class: 'some-special-class'},
-                    {title: 'Real Name'},
-                    {title: 'Phone'},
-                    {title: 'Email'},
-                    {title: 'Website'}
-                ],
-                rows: [],
-                dtHandle: null
+                response: {
+                    table: '',
+                    displayable: [],
+                    records: []
+                },
+                sort: {
+                    key: 'id',
+                    order: 'asc'
+                },
+                limit: 50,
+                quickSearchQuery: '',
+                editing: {
+                    id: null,
+                    form: {},
+                    errors: []
+                },
+                search: {
+                    value: '',
+                    operator: 'equals',
+                    column: 'id'
+                }
             }
         },
-        watch: {
-            users(val, oldVal) {
-                let vm = this;
-                vm.rows = [];
-                // You should _probably_ check that this is changed data... but we'll skip that for this example.
-                val.forEach(function (item) {
-                    // Fish out the specific column data for each item in your data set and push it to the appropriate place.
-                    // Basically we're just building a multi-dimensional array here. If the data is _already_ in the right format you could
-                    // skip this loop...
-                    let row = [];
-
-                    row.push(item.id);
-                    row.push(item.username);
-                    row.push(item.name);
-                    row.push(item.phone);
-                    row.push('<a href="mailto://' + item.email + '">' + item.email + '</a>');
-                    row.push('<a href="http://' + item.website + '" target="_blank">' + item.website + '</a>');
-
-                    vm.rows.push(row);
+        computed: {
+            filteredRecords() {
+                let data = this.response.records;
+                data = data.filter((row) => {
+                    return Object.keys(row).some((key) => {
+                        return String(row[key]).toLowerCase().indexOf(this.quickSearchQuery.toLowerCase()) > -1;
+                    });
                 });
-
-                // Here's the magic to keeping the DataTable in sync.
-                // It must be cleared, new rows added, then redrawn!
-                vm.dtHandle.clear();
-                vm.dtHandle.rows.add(vm.rows);
-                vm.dtHandle.draw();
+                if(this.sort.key) {
+                    data = _.orderBy(data, (i) => {
+                        let value = i[this.sort.key];
+                        if(!isNaN(parseFloat(value))){
+                            return parseFloat(value)
+                        }
+                        return String(i[this.sort.key]).toLowerCase()
+                    }, this.sort.order)
+                }
+                return data
+            }
+        },
+        methods: {
+            getRecords() {
+                // console.log(this.getQueryParameters());
+                return axios.get(`${this.endpoint}?${this.getQueryParameters()}`)
+                    .then((response) => {
+                        this.response = response.data.data
+                    })
+            },
+            getQueryParameters() {
+                return queryString.stringify({
+                    limit: this.limit,
+                    ...this.search
+                });
+            },
+            sortBy(column) {
+                this.sort.key = column;
+                this.sort.order = this.sort.order === 'asc' ? 'desc' : 'asc';
+            },
+            edit(record) {
+                this.editing.errors = [];
+                this.editing.id = record.id;
+                this.editing.form = _.pick(record, this.response.updatable);
+            },
+            isUpdatable(column){
+                return this.response.updatable.includes(column);
+            },
+            update() {
+                axios.patch(`${this.endpoint}/${this.editing.id}`, this.editing.form)
+                    .then(() => {
+                        this.getRecords().then(() => {
+                            this.editing.id = null;
+                            this.editing.form = {};
+                        })
+                    })
+                    .catch((error) => {
+                        this.editing.errors = error.response.data.errors
+                    })
             }
         },
         mounted() {
-            let vm = this;
-            // Instantiate the datatable and store the reference to the instance in our dtHandle element.
-            vm.dtHandle = $(this.$el).DataTable({
-                // Specify whatever options you want, at a minimum these:
-                columns: vm.headers,
-                data: vm.rows,
-                searching: false,
-                paging: false,
-                info: false
-            });
+            this.getRecords()
         }
     }
 </script>
 
-<style scoped>
-
+<style lang="scss">
+    .sortable:hover {
+        cursor: pointer;
+    }
+    .arrow {
+        display: inline-block;
+        vertical-align: middle;
+        width: 0;
+        height: 0;
+        margin-left: 5px;
+        opacity: .6;
+        &__asc {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 4px solid #222;
+        }
+        &__desc {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid #222;
+        }
+    }
 </style>

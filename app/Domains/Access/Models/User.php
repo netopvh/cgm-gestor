@@ -4,10 +4,12 @@ namespace App\Domains\Access\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Prettus\Repository\Contracts\Transformable;
+use Prettus\Repository\Traits\TransformableTrait;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Transformable
 {
-    use Notifiable;
+    use Notifiable, TransformableTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -15,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password','active','api_token',
     ];
 
     /**
@@ -32,3 +34,4 @@ class User extends Authenticatable
         return mb_strtoupper($value,'UTF-8');
     }
 }
+

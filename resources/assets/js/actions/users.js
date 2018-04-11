@@ -1,9 +1,11 @@
-$.extend( $.fn.dataTable.defaults, {
+$.extend($.fn.dataTable.defaults, {
     autoWidth: false,
-    columnDefs: [{
-        orderable: false,
-        width: '100px'
-    }],
+    columnDefs: [
+        {
+            orderable: false,
+            width: '100px'
+        }
+    ],
     language: {
         "sEmptyTable": "Nenhum registro encontrado",
         "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
@@ -11,14 +13,14 @@ $.extend( $.fn.dataTable.defaults, {
         "sInfoFiltered": "(Filtrados de _MAX_ registros)",
         "sInfoPostFix": "",
         "sInfoThousands": ".",
-        "sLengthMenu": "_MENU_ resultados por página",
+        "sLengthMenu": "_MENU_",
         "sLoadingRecords": "Carregando...",
         "sProcessing": "Processando...",
         "sZeroRecords": "Nenhum registro encontrado",
-        "sSearch": "Pesquisar",
+        "sSearch": "Pesquisar: ",
         "oPaginate": {
-            "sNext": "Próximo",
-            "sPrevious": "Anterior",
+            "sNext": "&rarr;",
+            "sPrevious": "&larr;",
             "sFirst": "Primeiro",
             "sLast": "Último"
         },
@@ -31,30 +33,92 @@ $.extend( $.fn.dataTable.defaults, {
     drawCallback: function () {
         $(this).find('tbody tr').slice(-3).find('.dropdown, .btn-group').addClass('dropup');
     },
-    preDrawCallback: function() {
+    preDrawCallback: function () {
         $(this).find('tbody tr').slice(-3).find('.dropdown, .btn-group').removeClass('dropup');
     }
 });
 
+//SETUP CSRF TOKEN
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
 
-let usersTable = $('#users');
-
-usersTable.DataTable({
+var lastIdx = null;
+var usersTable = $('#users').DataTable({
     serverSide: true,
     processing: true,
+    responsive: true,
+    columnDefs: [
+        {
+            targets: 4,
+            className: "text-center",
+        }
+    ],
     ajax: '/api/users',
     columns: [
-        { data: 'id', width:'90px' },
-        { data: 'name' },
-        { data: 'email' },
-        { data: 'active',width: '150px' }
+        {data: 'id', width: '90px'},
+        {data: 'name'},
+        {data: 'email'},
+        {data: 'active', width: '100px'},
+        {data: 'action', width: '80px', sortable: false}
     ]
 });
 
+// Highlighting rows and columns on mouseover
+$('.datatable-highlight tbody').on('mouseover', 'td', function() {
+    var colIdx = usersTable.cell(this).index().column;
 
-
-// Enable Select2 select for the length option
-$('.dataTables_length select').select2({
-    minimumResultsForSearch: Infinity,
-    width: 'auto'
+    if (colIdx !== lastIdx) {
+        $(usersTable.cells().nodes()).removeClass('active');
+        $(usersTable.column(colIdx).nodes()).addClass('active');
+    }
+}).on('mouseleave', function() {
+    $(usersTable.cells().nodes()).removeClass('active');
 });
+
+$('table[data-form="tblUsers"]').on('click','.ativar',function (e) {
+    e.preventDefault();
+    var vm = $(this);
+    console.log('ID: ' + vm.data('id') + ' - Ação:' + vm.data('value'));
+    $.ajax({
+        url: '/api/users/' + vm.data('id'),
+        type: "patch",
+        data: {
+            active: vm.data('value'),
+        },
+        success: function (data) {
+            console.log("Resultado: " + data)
+            //usersTable.ajax.reload(null, false);
+        },
+        error: function (request, status, error) {
+            console.log(request);
+            console.log(status);
+            console.log(error);
+        }
+    })
+});
+
+$('table[data-form="tblUsers"]').on('click','.desativa',function (e) {
+    e.preventDefault();
+    var vm = $(this);
+    $.ajax({
+        url: '/api/users/' + vm.data('id'),
+        type: "patch",
+        data: {
+            active: vm.data('value'),
+        },
+        success: function (data) {
+            console.log("teste");
+            //usersTable.ajax.reload(null, false);
+        },
+        error: function (request, status, error) {
+            console.log(request);
+            console.log(status);
+            console.log(error);
+        }
+    })
+});
+
+

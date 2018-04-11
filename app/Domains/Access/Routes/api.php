@@ -13,6 +13,4 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::resource('users','Api\UserApiController',['except' => [
-    'create'
-]]);
+Route::resource('users','Api\UserApiController');

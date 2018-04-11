@@ -24,7 +24,6 @@
     import _ from 'lodash';
     import CustomActions from './CustomActions.vue';
     import FilterBar from './FilterBar.vue';
-    import mockData from './mockData';
 
     export default {
         components: {
@@ -38,8 +37,9 @@
             return {
                 //supportBackup: true,
                 //supportNested: true,
+                fixHeaderAndSetBodyMaxHeight: 200,
                 tblClass: 'table-bordered table-condensed',
-                tblStyle: 'color: #666',
+                tblStyle: 'table-layout: fixed',
                 pageSizeOptions: [5, 10, 15, 20],
                 columns: (() => {
                     const cols = [
@@ -79,23 +79,37 @@
         },
         watch: {
             query: {
-                handler () {
-                    this.handleQueryChange()
+                handler (query) {
+                    this.handleQueryChange(query)
                 },
                 deep: true
             }
         },
         methods: {
-            handleQueryChange () {
-                mockData(this.query).then(({ rows, total, summary }) => {
-                    this.data = rows;
-                    this.total = total;
-                    this.summary = summary
-                })
+            handleQueryChange (query) {
+                if (this.allRows.length === 0) {
+                    axios.get('/api/users').then((res) => {
+                        this.allRows = res.data.data;
+                        this.data = this.allRows.slice(query.offset, query.limit);
+                        this.total = this.allRows.length;
+                    });
+                }
+                else {
+                    this.data = this.allRows.slice(query.offset, query.offset + query.limit);
+                    if (query.sort) {
+                        let sorted = _.orderBy(this.allRows, query.sort, query.order)
+                        this.data = sorted.slice(query.offset, query.offset + query.limit)
+                    }
+                }
             },
             alertSelectedUids () {
                 alert(this.selection.map(({id}) => id))
             },
+        },
+        created () {
+            // init query (make all the properties observable by using `$set`)
+            const q = { limit: 5, offset: 0, sort: '', order: '', ...this.query };
+            Object.keys(q).forEach(key => { this.$set(this.query, key, q[key]) })
         }
     }
 </script>

@@ -5,7 +5,6 @@ namespace App\Domains\Access\Controllers;
 use App\Core\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domains\Access\Models\User;
-use Yajra\DataTables\DataTables;
 
 class UserController extends Controller
 {
