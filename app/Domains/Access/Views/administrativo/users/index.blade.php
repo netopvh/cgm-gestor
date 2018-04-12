@@ -1,9 +1,5 @@
 @extends('layouts.app')
 
-@section('page-header')
-
-@stop
-
 @section('content')
     <div class="row">
         <div class="col-md-12">
@@ -17,6 +13,10 @@
                             <li><a data-action="close"></a></li>
                         </ul>
                     </div>
+                </div>
+                <div class="panel-body">
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary legitRipple"><i class="icon-database-add"></i> Novo</a>
+                    <a href="" class="btn btn-primary legitRipple"><i class="icon-file-excel"></i> Exportar</a>
                 </div>
                 <table class="table table-bordered table-condensed table-hover datatable-highlight" id="users" data-form="tblUsers">
                     <thead>

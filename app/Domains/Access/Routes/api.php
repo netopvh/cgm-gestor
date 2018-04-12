@@ -13,4 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::resource('users','Api\UserApiController');
+Route::resource('users','Api\UserApiController',['only' => [
+    'index','update'
+]]);

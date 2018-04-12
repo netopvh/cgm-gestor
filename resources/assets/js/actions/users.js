@@ -1,3 +1,6 @@
+/**
+ * Configuração padrão do DataTable
+ */
 $.extend($.fn.dataTable.defaults, {
     autoWidth: false,
     columnDefs: [
@@ -38,13 +41,11 @@ $.extend($.fn.dataTable.defaults, {
     }
 });
 
-//SETUP CSRF TOKEN
-$.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    }
-});
-
+/**
+ *
+ * DataTable dos Usuários
+ *
+ */
 var lastIdx = null;
 var usersTable = $('#users').DataTable({
     serverSide: true,
@@ -88,9 +89,8 @@ $('table[data-form="tblUsers"]').on('click','.ativar',function (e) {
         data: {
             active: vm.data('value'),
         },
-        success: function (data) {
-            console.log("Resultado: " + data)
-            //usersTable.ajax.reload(null, false);
+        success: function () {
+            usersTable.ajax.reload(null, false);
         },
         error: function (request, status, error) {
             console.log(request);
@@ -109,9 +109,8 @@ $('table[data-form="tblUsers"]').on('click','.desativa',function (e) {
         data: {
             active: vm.data('value'),
         },
-        success: function (data) {
-            console.log("teste");
-            //usersTable.ajax.reload(null, false);
+        success: function () {
+            usersTable.ajax.reload(null, false);
         },
         error: function (request, status, error) {
             console.log(request);

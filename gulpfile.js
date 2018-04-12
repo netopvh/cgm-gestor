@@ -51,6 +51,8 @@ gulp.task('scripts', function () {
         PATH_TEMPLATE + 'js/plugins/tables/datatables/extensions/responsive.min.js',
         PATH_TEMPLATE + 'js/plugins/tables/datatables/extensions/buttons.min.js',
         PATH_TEMPLATE + 'js/plugins/forms/selects/select2.min.js',
+        PATH_TEMPLATE + 'js/plugins/forms/validation/validate.min.js',
+        PATH_TEMPLATE + 'js/plugins/forms/validation/localization/messages_pt_BR.js',
         PATH_SCRIPT + 'users.js'
     ])
         .pipe(concat('bundle.min.js'))

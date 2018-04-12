@@ -15,12 +15,13 @@ Route::post('password/email', 'ForgotPasswordController@sendResetLinkEmail')->na
 Route::get('password/reset/{token}', 'ResetPasswordController@showResetForm')->name('password.reset');
 Route::post('password/reset', 'ResetPasswordController@reset');
 
-Route::prefix('admin')->group(function (){
+Route::prefix('admin')->middleware('auth')->group(function (){
     Route::get('/','AdminController@index')->name('admin.index');
     Route::prefix('users')->group(function (){
         Route::get('/','UserController@index')->name('admin.users.index');
-        Route::post('/store','UserController@store')->name('users.store');
-        Route::get('/{id}','UserController@show');
-        Route::patch('/{id}','UserController@update');
+        Route::get('/create','UserController@create')->name('admin.users.create');
+        Route::post('/store','UserController@store')->name('admin.users.store');
+        Route::get('/{id}/edit','UserController@edit')->name('admin.users.edit');
+        Route::patch('/{id}','UserController@update')->name('admin.users.update');
     });
 });

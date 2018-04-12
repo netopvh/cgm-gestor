@@ -153,6 +153,7 @@ return [
         Watson\Active\ActiveServiceProvider::class,
         Yajra\DataTables\DataTablesServiceProvider::class,
         Prettus\Repository\Providers\RepositoryServiceProvider::class,
+        Laratrust\LaratrustServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -219,6 +220,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'Active' => Watson\Active\Facades\Active::class,
         'DataTables' => Yajra\DataTables\Facades\DataTables::class,
+        'Laratrust'   => Laratrust\LaratrustFacade::class,
 
     ],
 

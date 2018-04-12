@@ -4,12 +4,13 @@ namespace App\Domains\Access\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laratrust\Traits\LaratrustUserTrait;
 use Prettus\Repository\Contracts\Transformable;
 use Prettus\Repository\Traits\TransformableTrait;
 
 class User extends Authenticatable implements Transformable
 {
-    use Notifiable, TransformableTrait;
+    use Notifiable, TransformableTrait,LaratrustUserTrait;
 
     /**
      * The attributes that are mass assignable.
